@@ -1,0 +1,20 @@
+{
+  "name": "video-downloader",
+  "version": "1.0.0",
+  "description": "Detects M3U8 file requests in Chrome",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --outDir ./dist && cp ./manifest.json ./static/popup.html ./static/icon16.png ./static/icon48.png ./static/icon128.png ./dist",
+    "package": "web-ext build --source-dir=./dist --artifacts-dir=./packages --overwrite-dest"
+  },
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {
+    "hls-parser": "^0.13.2"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "typescript": "^5.4.5",
+    "web-ext": "^7.11.0"
+  }
+}
