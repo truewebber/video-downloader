@@ -4,7 +4,7 @@
   "description": "Detects M3U8 file requests in Chrome",
   "type": "module",
   "scripts": {
-    "build": "parcel build",
+    "build": "parcel build --no-cache",
     "build:static": "cp ./manifest.json ./static/icon16.png ./static/icon48.png ./static/icon128.png ./dist",
     "package": "web-ext build --source-dir=./dist --artifacts-dir=./packages --overwrite-dest"
   },
@@ -20,7 +20,9 @@
   "author": "Your Name",
   "license": "ISC",
   "dependencies": {
-    "hls-parser": "^0.13.2"
+    "@ffmpeg/ffmpeg": "^0.12.10",
+    "hls-parser": "^0.13.2",
+    "hls.js": "^1.5.8"
   },
   "devDependencies": {
     "@parcel/config-default": "^2.12.0",

@@ -2,10 +2,19 @@
 <html>
 <head>
     <title>M3U8 Request Detector</title>
-    <script src="popup.ts"></script>
+    <script type="module" src="popup.ts"></script>
+    <style>
+        body {
+            min-width: 200px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+    </style>
 </head>
 <body>
-<h1>M3U8 Request Status:</h1>
-<div id="status">Checking...</div>
+<h3 id="title">Checking...</h3>
+<div><ul id="videos"></ul></div>
 </body>
 </html>
