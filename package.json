@@ -9,23 +9,16 @@
     "package": "web-ext build --source-dir=./dist --artifacts-dir=./packages --overwrite-dest"
   },
   "source": [
-    "src/popup.html",
-    "src/background.ts"
+    "src/popup.html"
   ],
   "targets": {
     "default": {
-      "distDir": "./dist",
-      "includeNodeModules": [
-        "hls-parser",
-        "hls.js"
-      ]
+      "distDir": "./dist"
     }
   },
   "author": "Your Name",
   "license": "ISC",
   "dependencies": {
-    "@ffmpeg/core": "^0.12.6",
-    "@ffmpeg/ffmpeg": "^0.12.10",
     "hls-parser": "^0.13.2",
     "hls.js": "^1.5.8"
   },

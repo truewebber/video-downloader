@@ -13,11 +13,28 @@
             padding: 0;
         }
     </style>
+    <style>
+        #progressContainer {
+            width: 100%;
+            background-color: #f3f3f3;
+        }
+        #progressBar {
+            width: 0%;
+            height: 30px;
+            background-color: #4caf50;
+            text-align: center;
+            line-height: 30px;
+            color: white;
+        }
+    </style>
 </head>
 <body>
 <h3 id="title">Checking...</h3>
 <div>
     <ul id="videos"></ul>
+    <div id="progressContainer">
+        <div id="progressBar"></div>
+    </div>
 </div>
 </body>
 </html>
