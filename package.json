@@ -14,12 +14,17 @@
   ],
   "targets": {
     "default": {
-      "distDir": "./dist"
+      "distDir": "./dist",
+      "includeNodeModules": [
+        "hls-parser",
+        "hls.js"
+      ]
     }
   },
   "author": "Your Name",
   "license": "ISC",
   "dependencies": {
+    "@ffmpeg/core": "^0.12.6",
     "@ffmpeg/ffmpeg": "^0.12.10",
     "hls-parser": "^0.13.2",
     "hls.js": "^1.5.8"
@@ -28,6 +33,7 @@
     "@parcel/config-default": "^2.12.0",
     "@parcel/transformer-typescript-tsc": "^2.12.0",
     "@types/chrome": "^0.0.268",
+    "@types/hls.js": "^1.0.0",
     "parcel": "^2.12.0",
     "typescript": "^5.4.5",
     "web-ext": "^7.11.0"

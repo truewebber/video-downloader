@@ -1,7 +1,5 @@
-import Hls from 'hls.js';
-import {FFmpeg} from '@ffmpeg/ffmpeg';
-
 import {DetectedVideo} from './types/detected.js';
+import {Hls, ManifestParsedData} from 'hls.js'
 
 chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
     const currentTab = tabs[0];
@@ -35,73 +33,81 @@ function makeVideoDownloadButtons(videosString: string): void {
     const videos = JSON.parse(videosString) as DetectedVideo[]
     const videosElem = document.getElementById('videos')!;
 
-    let i = 0;
-
     videos.forEach(video => {
-        i++;
-
-        const videoID = `downloadBtn${i}`;
-
         const elemButton = document.createElement('button')
-        elemButton.setAttribute('id', videoID);
         elemButton.textContent = `${video.width}x${video.height}`;
+        elemButton.addEventListener('click', () => {
+            downloadVideo(video.url).then();
+        });
 
         const elem = document.createElement('li');
         elem.appendChild(elemButton);
-
-        elem.addEventListener('click', () => {
-            downloadHLSVideo(video.url);
-        });
 
         videosElem.appendChild(elem);
     })
 }
 
-// Function to download and combine HLS segments
-async function downloadHLSVideo(m3u8Url: string): Promise<void> {
-    console.log('clicked');
-
+async function downloadVideo(m3u8videoURL: string): Promise<void> {
     const hls = new Hls();
+    hls.loadSource(m3u8videoURL);
 
-    // Load the manifest (m3u8 file)
-    hls.loadSource(m3u8Url);
-
-    // Wait for the manifest to be parsed
-    hls.on(Hls.Events.MANIFEST_PARSED, async () => {
-        const segments = hls.levels[0].details?.fragments.map(frag => new URL(frag.url, m3u8Url).href) || [];
-
-        const ffmpeg = new FFmpeg();
-        await ffmpeg.load();
-
-        // Download each segment
-        for (const [index, segmentUrl] of segments.entries()) {
-            const response = await fetch(segmentUrl);
-            const data = await response.arrayBuffer();
-            const filename = `segment${index}.ts`;
-            await ffmpeg.writeFile(filename, new Uint8Array(data));
+    hls.on(Hls.Events.MANIFEST_PARSED, async (event: Event, data: ManifestParsedData) => {
+        const levels = data.levels;
+        if (levels.length === 0) {
+            return;
         }
 
-        // Combine segments using FFmpeg
-        await ffmpeg.exec(
-            [
-                '-i', `concat:${segments.map((_, index) => `segment${index}.ts`).join('|')}`,
-                '-c', 'copy',
-                'output.mp4'
-            ]
-        );
+        const fragments = levels[0].details?.fragments || [];
 
-        // Retrieve the combined video file
-        const data = await ffmpeg.readFile('output.mp4');
-        const videoBlob = new Blob([data], {type: 'video/mp4'});
-        const url = URL.createObjectURL(videoBlob);
-        const a = document.createElement('a');
+        const fragmentURLs: string[] = [];
+        fragments.forEach(fragment => {
+            fragmentURLs.push(fragment.url);
+        });
+
+        const segments = await fetchAllSegments(fragmentURLs);
+        const concatenatedBuffer = concatenateBuffers(segments);
+        const blob = new Blob([concatenatedBuffer], {type: 'video/mp2t'});
+
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob);
         a.style.display = 'none';
-        a.href = url;
-        a.download = 'output.mp4';
+        a.download = 'video.ts';
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
 
-        console.log('Video downloaded successfully!');
+
+        document.body.removeChild(a);
     });
+}
+
+async function fetchTS(url: string): Promise<ArrayBuffer> {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch ${url}`);
+    }
+    return await response.arrayBuffer();
+}
+
+async function fetchAllSegments(segmentURLs: string[]): Promise<ArrayBuffer[]> {
+    const segments: ArrayBuffer[] = [];
+    for (const url of segmentURLs) {
+        try {
+            const segment = await fetchTS(url);
+            segments.push(segment);
+        } catch (error) {
+            console.error(`Error fetching segment ${url}:`, error);
+        }
+    }
+    return segments;
+}
+
+function concatenateBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
+    const totalLength = buffers.reduce((acc, buffer) => acc + buffer.byteLength, 0);
+    const concatenated = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const buffer of buffers) {
+        concatenated.set(new Uint8Array(buffer), offset);
+        offset += buffer.byteLength;
+    }
+    return concatenated.buffer;
 }
